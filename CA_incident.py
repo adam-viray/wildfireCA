@@ -168,7 +168,7 @@ class fireCA:
         right = int(min(self.n, right+xpad))
         return [top,bottom,left,right]
     
-    def get_kappa(self):
+    def get_kappa(self,j):
         top,bottom,left,right = self.get_relevant_extent()
         relevant_m = bottom - top
         relevant_n = right - left
@@ -371,7 +371,7 @@ class fireCA:
                 CA_pixels = self.burning.union(self.smoldering,self.extinguished,self.burnt)
                 self.overburn[j] = len(CA_pixels - VIIRS_pixels)
                 self.underburn[j] = len(VIIRS_pixels - CA_pixels)
-                self.kappa[j] = self.get_kappa()
+                self.kappa[j] = self.get_kappa(j)
                 if self.hour != j%24:
                     self.hour = j%24
                     self.wind_spd = self.wspd[j]
