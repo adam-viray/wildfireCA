@@ -425,7 +425,7 @@ def doCA(d):
     if os.path.exists(CA.consts['gif_dir']):
         shutil.rmtree(CA.consts['gif_dir'])
     os.makedirs(CA.consts['gif_dir'])
-    for key,val in np.loadtxt(os.getcwd()+'/settings', delimiter=',',dtype=str).T:
+    for key,val in np.loadtxt(os.getcwd()+'/settings.txt', delimiter=',',dtype=str).T:
         CA.consts[key] = float(val)
     CA.consts['spatial_resolution'] = int(re.findall('[0-9]{2,3}[m]',d)[0][:-1])
     #CA.consts['weight_d'] *= (240/CA.consts['spatial_resolution'])
@@ -462,10 +462,10 @@ def doCA(d):
     #subprocess.run(f"ffmpeg -y -f concat -safe 0 -i {fffilename} -c:v libx264 -pix_fmt yuv420p -movflags +faststart {CA.consts['spatial_resolution']}m.gif".split(" "))
     
 def main():
-    dirs = glob('/home/adam.viray/Documents/CA/data/test_fires/MT46*/120m/', recursive = True)
-    
-    with Pool(max_workers=8) as p0:
-        p0.map(doCA, dirs)
+    dirs = glob(os.getcwd()+'/MT4*', recursive = True)
+    doCA(dirs[0])
+    #with Pool(max_workers=8) as p0:
+    #    p0.map(doCA, dirs)
     
 if __name__=='__main__':
     main()
