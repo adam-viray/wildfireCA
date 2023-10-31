@@ -462,7 +462,7 @@ def doCA(d):
     #subprocess.run(f"ffmpeg -y -f concat -safe 0 -i {fffilename} -c:v libx264 -pix_fmt yuv420p -movflags +faststart {CA.consts['spatial_resolution']}m.gif".split(" "))
     
 def main():
-    dirs = glob(os.getcwd()+'/MT4*/*/', recursive = True)
+    dirs = glob(os.getcwd()+'/MT4*/240m/', recursive = True)
     doCA(dirs[0])
     #with Pool(max_workers=8) as p0:
     #    p0.map(doCA, dirs)
