@@ -425,7 +425,7 @@ def doCA(d):
     if os.path.exists(CA.consts['gif_dir']):
         shutil.rmtree(CA.consts['gif_dir'])
     os.makedirs(CA.consts['gif_dir'])
-    for key,val in np.loadtxt('/home/adam.viray/Documents/CA/code/settings/default.txt', delimiter=',',dtype=str).T:
+    for key,val in np.loadtxt(os.getcwd()+'/settings', delimiter=',',dtype=str).T:
         CA.consts[key] = float(val)
     CA.consts['spatial_resolution'] = int(re.findall('[0-9]{2,3}[m]',d)[0][:-1])
     #CA.consts['weight_d'] *= (240/CA.consts['spatial_resolution'])
