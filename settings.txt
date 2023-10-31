@@ -1,0 +1,2 @@
+s_base,ign_threshold,weight,weight_d,weight_phi,spread_threshold,initial_burn,burn_speed,forest_speed,shrub_speed
+128,0.9,2,2,2,0.8,0.1,0.7,0.7,1.4
