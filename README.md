@@ -2,3 +2,80 @@
 Everything to get started is here. The file CA_incident.py is the script which can run one or more incidents, assuming the data is prepared correctly.
 In main, simply change dirs to a list containing the paths to the data folders. To run the test example, change nothing.
 When you run the script  it should create an output folder with a bunch of pngs and a gif. The model parameters can be changed in the file params.txt.
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+2. Methods 
+
+2.1 Model goals 
+
+We want a scale-invariant fast fire spread model that can incorporate soil/fuel/canopy moisture. This will allow us to produce a tool which can be used for both short- and long-term predictions for use in both fuel management and active incident management. 
+
+2.2. Model description 
+
+2.2.1. Data landscape 
+
+As wildfire spreads through the landscape, it can encounter many different topographic, vegetation, and climatic conditions. To capture fire growth through this spatially heterogeneous landscape, we implement our cellular automaton on regularly gridded environmental data. Each cell has a slope, elevation, aspect, vegetation type distribution, wind speed, wind direction, and rate of spread. The rate of spread is estimated from atmospheric conditions using a regression model. We use this rate of spread not only as a limit on fire spread but also as an indicator of atmospheric conditions in a cell. 
+
+2.2.2. Fire landscape 
+
+Each cell has a state variable that records which phase of combustion the cell is experiencing. The landscape is initialized with two states, unburnable and unburnt; any cell with more than ten percent bare earth is considered unburnable. Once the fire starts, cells in the landscape can transition from unburnt to burning, smoldering, extinguished, and burnt states. The ignition site of the fire is chosen and that cell is set to burning. Then, there are two ways that cells can transition between combustion states.  
+
+The first is by consumption of fuel. The surface and bulk fuels in a cell will be consumed when it is burning. Once all the surface fuels are consumed, the cell transitions to the smoldering state. While smoldering, bulk fuels will continue to burn until they are consumed and the cell enters the burnt state. 
+
+The second mode of transition relies on the rate of spread as an indicator of atmospheric conditions such as humidity and temperature. We set two threshold rates. Below the first one, a burning cell will transition to the smoldering state. Below the second, it will transition to the extinguished state. In this special case of smoldering cells, an increase in rate of spread above the threshold will reignite the cell. 
+
+Finally, cells which are unburnt and cells which are smoldering or extinguished and still have surface fuels can be ignited by the spread of fire from burning cells for which the amount of burnt surface fuels has passed a threshold. This spread of fire is described in the next section. 
+
+2.2.3. Fire spread model 
+
+As observed in every fire spread model ever, a fire’s direction and magnitude of spread are strongly influenced by wind and topography. To infer this effect on the base rate of spread from environmental characteristics, wind speed and slope must first be transformed into appropriately-scaled values, then vector added to produce a vector field which will give direction to and scale the rate of spread scalar field.  
+
+The wind’s impact on rate of spread is estimated using a modified 10% rule, as inspired by Cruz (2020): 
+
+\eqn 3 
+
+where wm is the magnitude of the wind’s effect and v is the wind velocity in meters per second.  
+
+The effect of slope on spread rate is estimated from data collected by Butler et al. (2007): 
+
+\eqn 4 
+
+where sm is the magnitude of the slope’s effect and θ is the slope in degrees. The magnitude of the wind’s effect can be as small as zero, but the topography has a positive minimum effect so that the scaling vector does not decrease rate of spread. These magnitudes point in the directions opposite wind direction and aspect, respectively. The two vectors are added to produce the scaling vector field, which is multiplied by the rate of spread field. This results in a vector representing the direction and distance the fire can spread in a given time step. With this spread vector in hand we then produce a statistical representation of the paths for heat to travel from burning cells to their neighbors.  
+
+First we depict an outer boundary for the convection of heat. With the range and direction described above, this boundary is described by: 
+
+\eqn 8 
+
+where θ is zero at the direction of maximum spread. This boundary is a circle of radius 
+2
+ at minimum and can grow infinitely large as depicted in fig. 1.  
+
+ 
+
+fig 1. the outer boundary of heat spread from a burning cell at the center, with the direction of spread pointing due east. 
+
+This boundary represents the straight-line path in the direction of maximum spread as well as variations in direction due to turbulent flows and irregular topography. The probability that a packet of heat will reach ignitable fuels in a neighboring cell is given by a double Gaussian scaled by the rate of spread in the neighboring cell: 
+
+\eqn 9 
+
+where weight, weight_d, and weight_phi are parameters. This produces a small but non-zero probability of spreading backward or very far forward, and a larger probability of spreading to the adjacent forward cell. Then when any cell accumulates enough ignition probability, it will transition to the burning state. 
+
+2.2.4. Model execution 
+
+The model uses adaptive timestepping with a CFL condition to prevent overburning fuels. Some parameters are scaled by the spatial resolution to retain scale invariance. It iterates over smoldering cells, then burning cells, then it ignites neighboring cells. It repeats until the data run out or until the fire is extinguished, whichever happens first. 
+
+
+Investigation of the Fire Radiative Energy Biomass Combustion Coefficient: A Comparison of Polar and Geostationary Satellite Retrievals Over the Conterminous United States  
+https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2017JG004279 
+
+Fire radiative energy for quantitative study of biomass burning: derivation from the BIRD experimental satellite and comparison to MODIS fire products 
+https://www.sciencedirect.com/science/article/pii/S0034425703000701 
+
+Impacts of a revised surface roughness parameterization in the Community Land Model 5.1 
+https://gmd.copernicus.org/articles/15/2365/2022/gmd-15-2365-2022.pdf 
+
+Analytical and numerical insights into wildfire dynamics: Exploring the advection–diffusion–reaction model 
+https://arxiv.org/pdf/2307.16174.pdf 
+
+Cellular Automata, PDEs, and Pattern Formation 
+https://arxiv.org/pdf/1003.1983.pdf 
